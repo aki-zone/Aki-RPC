@@ -55,7 +55,7 @@ public class AkiRpcSpringBeanPostProcessor implements BeanPostProcessor, BeanFac
     @SneakyThrows  //自动处理检查型异常（checked exceptions），在编写代码时不需要显式地捕获或声明抛出这些异常。
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        // FIXME Info输出
+
         // log.info("postProcessBeforeInitialization会先于所有的Bean实例化之前执行");
         // 1. 检查当前Bean是否标注了 @EnableRpc 注解。
         EnableRpc enableRpc = bean.getClass().getAnnotation(EnableRpc.class);
@@ -84,7 +84,7 @@ public class AkiRpcSpringBeanPostProcessor implements BeanPostProcessor, BeanFac
     //调用阶段：bean【初始化方法】【调用后】被调用
     @SneakyThrows   //自动处理检查型异常（checked exceptions），在编写代码时不需要显式地捕获或声明抛出这些异常。
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        // FIXME Info输出
+
         //log.info("postProcessAfterInitialization会先于所有的Bean实例化之后执行");
         //1. 检查 bean 对象所属的类是否被 AkiService 注解标记。
         AkiService akiService = bean.getClass().getAnnotation(AkiService.class);
