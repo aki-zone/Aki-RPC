@@ -58,10 +58,7 @@
 ## 性能测试
 ApiFox测试
 <div style="display: flex; justify-content: space-between;">
-
-  <img src="./pic/002.png" style="width: 100%;" alt="Apifox测试 1"/>
-  <img src="./pic/003.png" style="width: 100%;" alt="Apifox测试 2"/>
-
+  <img src="./pic/002.png" style="width: 65%;" alt="Apifox测试 1"/><img src="./pic/003.png" style="width: 35%;" alt="Apifox测试 2"/> 
 </div>
 
 
@@ -143,4 +140,3 @@ public class ConsumerController {
 
 ## 许可证
 Aki-RPC在 MIT 许可下可用。查看[LICENSE](pic/LICENSE.txt) 文件了解更多信息。
-![GitHub](https://img.shields.io/github/license/aki-zone/Aki-RPC)
