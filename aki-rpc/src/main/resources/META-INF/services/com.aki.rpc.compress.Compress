@@ -1,0 +1,2 @@
+com.aki.rpc.compress.GzipCompress
+com.aki.rpc.compress.OtherCompress
