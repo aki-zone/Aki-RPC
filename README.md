@@ -10,6 +10,7 @@
 - 实现自定义的高性能通信协议，解决粘包、拆包问题
 - 池化处理Channel和远程实例，优化缓存压力
 - 实现了SPI动态插件式加载压缩算法和序列化算法
+- 支持服务集群部署，服务实例以随机负载均衡调用
 - 支持服务注册发现，并在注册发现平台离线后仍可依赖本地缓存连接
 - 无需大盖原有逻辑，仅两、三个注解即可完成服务发布和远程调用
 
@@ -23,9 +24,9 @@
 - - **factory:** 单例工厂工具包;
 - - **message:** 消息传输DTO;
 - - **register.nacos:** 服务发现注册的工具包，以及已经实现完成的Nacos注册工具类;
-- - **compress:** 压缩类接口及其实现的工具类;
-- - **serialize:** 序列化类接口及其实现的工具类;
-- - **server:** 实现netty server与client端
+- - **compress:** 压缩类接口及其实现的工具类，默认为GZIP;
+- - **serialize:** 序列化类接口及其实现的工具类，默认为Protostuff;
+- - **server:** 实现 Netty server端与client端详细业务;
 - - **proxy:** 对指定bean设置动态代理的工具类;
 - - **spring:** 用于对标注@EnableRpc的主类项目扫包，发布服务并执行动态代理;
 - - **utils:** 包装运行期获取CPU核心数的工具类;
@@ -64,20 +65,29 @@ ApiFox测试
 
 
 ## 使用流程
-### 1.Nacos
+### 1.启动Nacos
 **请先确保一台暴露有效端口的Nacos服务**
 [点击此处进入官方部署手册。](https://www.nacos.io/docs/v2.3/quickstart/quick-start/)
 
-### 2.启用RPC服务
+### 2.导入依赖
+此处进入下载界面-> **[Releases](https://github.com/aki-zone/Aki-RPC/releases)**
+``` xml
+<dependency>
+    <groupId>com.akizora</groupId>
+    <artifactId>aki-rpc</artifactId>
+    <version>x.x.x</version>  
+</dependency>
+```
+### 2.启用RPC服务 ```@EnableRpc```
 
 ```java
 // 生产端
 // 在生产端主类上方启用@EnableRpc并填入相关配置信息
 @EnableRpc(
-//        nacosHost = "",   //nacos服务地址，选填，默认为localhost
-//        nacosPort = 0,    //nacos服务端口，选填，默认为8848
-//        nacosGroup = "",  //服务注册的群组名，选填，默认为"aki-rpc"
-//        serverPort = 0    //生产端部署服务的总端口，选填，默认为本机随机未占领端口
+//        nacosHost = "localhost",   //nacos服务地址，选填，默认为localhost
+//        nacosPort = 8848,          //nacos服务端口，选填，默认为8848
+//        nacosGroup = "aki-rpc",    //服务注册的群组名，选填，默认为"aki-rpc"
+//        serverPort = 0             //生产端部署服务的总端口，选填，默认为0，即本机随机未占领的端口
 )
 @SpringBootApplication
 public class ProviderApp {
@@ -90,7 +100,9 @@ public class ProviderApp {
 ```java
 // 消费端
 // 在消费端主类上方启用@EnableRpc并填入对应的配置信息
-@EnableRpc(nacosGroup = "aki-rpc")      
+@EnableRpc(
+//        nacosGroup = "aki-rpc"   //服务注册的群组名，选填，默认为"aki-rpc"
+)      
 @SpringBootApplication
 public class ConsumerApp {
     public static void main(String[] args) {
@@ -100,12 +112,12 @@ public class ConsumerApp {
 
 ```
 
-### 3.在生产端发布一项服务
+### 3.在生产端发布一项服务 ```@AkiService```
 
 ```java
-// 在实现的业务函数上启用@AkiService并标注方法版本
+// 在已实现的业务类上启用@AkiService并标注方法版本
 @AkiService(
-        version = "1.0"     // 选填，默认为"1.0"
+//        version = "1.0"     // 服务版本，选填，默认为"1.0"
 )
 @Service
 public class ProviderTestServiceImpl implements ProviderTestService {
@@ -116,7 +128,7 @@ public class ProviderTestServiceImpl implements ProviderTestService {
 
 ```
 
-### 4.在消费端调用一项服务
+### 4.在消费端调用一项服务 ```@AkiReference```
 ```java
 @RestController
 @RequestMapping("test")
@@ -125,7 +137,7 @@ public class ConsumerController {
     //对需要的工具类启用 @AkiReference注解
     //此处会根据类型自动远程装配对应实例
     @AkiReference(
-            version = "1.0"      // 选填，默认为"1.0"
+    //       version = "1.0"      //服务版本， 选填，默认为"1.0"
     )
     private ProviderTestService providerTestService;
     
@@ -135,7 +147,6 @@ public class ConsumerController {
     }
 }
 ```
-
 
 
 ## 许可证
