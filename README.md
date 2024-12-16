@@ -4,7 +4,7 @@
 ## 详细说明
 ![系统架构](./pic/001.png)
 
-## 已完成
+## 开发进度
 - 实现对连接的心跳监测和退避重连
 - 实现异步通讯架构大幅提升网络性能
 - 实现自定义的高性能通信协议，解决粘包、拆包问题
@@ -13,7 +13,8 @@
 - 支持服务集群部署，服务实例以随机负载均衡调用
 - 支持服务注册发现，并在注册发现平台离线后仍可依赖本地缓存连接
 - 无需大盖原有逻辑，仅两、三个注解即可完成服务发布和远程调用
-
+- ~~实现宕机后日志状态恢复~~
+- ~~实现多语言端调用~~
 
 ## 项目模块
 - **aki-rpc**
@@ -31,6 +32,10 @@
 - - **spring:** 用于对标注@EnableRpc的主类项目扫包，发布服务并执行动态代理;
 - - **utils:** 包装运行期获取CPU核心数的工具类;
 - - **META-INF:** 用于提供给SPI机制所需的服务配置文件。
+- **consumer-parent:** 消费端测试样例
+- **provider-parent:** 生产端测试样例
+
+
 
 ## 传输帧结构
 ```
@@ -84,10 +89,10 @@ ApiFox测试
 // 生产端
 // 在生产端主类上方启用@EnableRpc并填入相关配置信息
 @EnableRpc(
-//        nacosHost = "localhost",   //nacos服务地址，选填，默认为localhost
-//        nacosPort = 8848,          //nacos服务端口，选填，默认为8848
-//        nacosGroup = "aki-rpc",    //服务注册的群组名，选填，默认为"aki-rpc"
-//        serverPort = 0             //生产端部署服务的总端口，选填，默认为0，即本机随机未占领的端口
+//        nacosHost = "localhost",   //nacos服务地址，*选填，默认为localhost
+//        nacosPort = 8848,          //nacos服务端口，*选填，默认为8848
+//        nacosGroup = "aki-rpc",    //服务注册的群组名，*选填，默认为"aki-rpc"
+//        serverPort = 0             //生产端部署服务的总端口，*选填，默认为0，即本机随机未占领的端口
 )
 @SpringBootApplication
 public class ProviderApp {
@@ -101,7 +106,7 @@ public class ProviderApp {
 // 消费端
 // 在消费端主类上方启用@EnableRpc并填入对应的配置信息
 @EnableRpc(
-//        nacosGroup = "aki-rpc"   //服务注册的群组名，选填，默认为"aki-rpc"
+//        nacosGroup = "aki-rpc"   //服务注册的群组名，*选填，默认为"aki-rpc"
 )      
 @SpringBootApplication
 public class ConsumerApp {
@@ -117,12 +122,12 @@ public class ConsumerApp {
 ```java
 // 在已实现的业务类上启用@AkiService并标注方法版本
 @AkiService(
-//        version = "1.0"     // 服务版本，选填，默认为"1.0"
+//        version = "1.0"     // 服务版本，*选填，默认为"1.0"
 )
 @Service
 public class ProviderTestServiceImpl implements ProviderTestService {
-    public TestResult TestFunction(TestRequest testRequest) {
-        return new TestResult("Hello, World!");
+    public TestResult TestFunction(String id) {
+        return new TestResult(id+": Hello, World!");
     }
 }
 
@@ -130,24 +135,32 @@ public class ProviderTestServiceImpl implements ProviderTestService {
 
 ### 4.在消费端调用一项服务 ```@AkiReference```
 ```java
+// 确保导入目标调用类的依赖
+import com.example..rpc.services.ProviderTestService;
+
 @RestController
-@RequestMapping("test")
+@RequestMapping("/ConsumerTest")
 public class ConsumerController {
     
-    //对需要的工具类启用 @AkiReference注解
+    //对目标的调用类启用 @AkiReference注解
     //此处会根据类型自动远程装配对应实例
     @AkiReference(
-    //       version = "1.0"      //服务版本， 选填，默认为"1.0"
+    //       version = "1.0"      //服务版本， *选填，默认为"1.0"
     )
     private ProviderTestService providerTestService;
     
-    @GetMapping("/{var}")
-    public TestResult find(@PathVariable TestRequest var){
+    @GetMapping("/{id}")
+    public TestResult find(@PathVariable String id){
         return providerTestService.TestFunction(id);
     }
 }
 ```
 
+### 5.访问测试
+#### 启动生产端/消费端服务，并访问```/ConsumerTest/{id}```，查看远程调用输出结果。
+例如：
+访问 ```localhost:7786/ConsumerTest/120```
+显示 ``` 120:  Hello, World!```
 
 ## 许可证
 Aki-RPC在 MIT 许可下可用。查看[LICENSE](pic/LICENSE.txt) 文件了解更多信息。
