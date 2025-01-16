@@ -64,10 +64,36 @@
 |  body      | 数据消息。通常为被序列化、再经压缩后的```AkiRequest``` ```AkiResponse``` ```HEART_PING``` ```HEART_PONG``` 对象。 | -  |
 
 ## 性能测试
-ApiFox测试
+### ApiFox测试
 <div style="display: flex; justify-content: space-between;">
   <img src="./pic/002.png" style="width: 65%;" alt="Apifox测试 1"/><img src="./pic/003.png" style="width: 35%;" alt="Apifox测试 2"/> 
 </div>
+
+### Jmeter性能测试
+**线程组配置**:
+- 线程数: 200 
+- Ramp-up: 5秒
+- 循环次数: -1 (持续运行)
+- 持续时间: 300秒(5分钟)
+
+**请求配置**:
+- 请求大小: 1KB左右的业务对象
+- 超时时间: 3000ms
+<div style="display: flex; justify-content: space-between;">
+  <img src="./pic/004.png" style="width: 49%;" alt="Jmeter测试 1"/> <img src="./pic/005.png" style="width: 49%;" alt="Jmeter测试 1"/>
+
+</div>
+
+压测结果指标:
+- 平均响应时间 < 50ms
+- 95%响应时间 < 100ms
+- 吞吐量稳定在 400/sec
+- 错误率 < 0.1%
+- TPS稳定在3-4000 持续约3分钟
+<div style="display: flex; justify-content: space-between;">
+  <img src="./pic/006.png" style="width: 65%;" alt="Jmeter测试 1"/>
+</div>
+
 
 
 
